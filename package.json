@@ -1,0 +1,33 @@
+{
+  "name": "motechwa-soi-auto-receptionist",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared-line AI voice receptionist for MOTECHWA and the Sayyidina Omar Institute (Twilio + Vapi)",
+  "scripts": {
+    "dev": "next dev -p 3000 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 3000 -H 0.0.0.0",
+    "lint": "next lint",
+    "create-assistant": "node scripts/create-assistant.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.453.0",
+    "next": "14.2.35",
+    "nodemailer": "^10.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.11",
+    "@types/nodemailer": "^7.0.4",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3"
+  }
+}
