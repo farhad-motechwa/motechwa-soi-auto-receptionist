@@ -52,8 +52,10 @@ motechwa-soi-auto-receptionist/
 - A [Vapi](https://vapi.ai) account (free tier is sufficient to start)
 - Your Twilio Account SID and Auth Token (Console → Account → API keys & tokens), to import
   the shared number into Vapi
-- An SMTP account for outbound email — a Google Workspace account with an
-  [App Password](https://support.google.com/accounts/answer/185833) is the simplest option
+- Two SMTP-capable mailboxes for outbound email — each entity sends its own enquiry
+  emails from its own Google Workspace mailbox (`farhad@motechwa.com.au` and
+  `farhad@sayyidinaomarinstitute.au`), each with its own
+  [App Password](https://support.google.com/accounts/answer/185833)
 
 ## 4. Local setup
 
@@ -67,7 +69,13 @@ Fill in `.env.local`:
 
 - `ADMIN_EMAIL_MOTECHWA`, `ADMIN_EMAIL_SOI` — already defaulted in `.env.example` to
   `farhad@motechwa.com.au` and `farhad@sayyidinaomarinstitute.au`.
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — your email dispatch details.
+- `SMTP_HOST` / `SMTP_PORT` — shared by both mailboxes (`smtp.gmail.com` / `587`),
+  already defaulted in `.env.example`.
+- `SMTP_USER_MOTECHWA` / `SMTP_PASS_MOTECHWA` — MOTECHWA's own mailbox
+  (`farhad@motechwa.com.au`) and its Google Workspace App Password.
+- `SMTP_USER_SOI` / `SMTP_PASS_SOI` — the Institute's own mailbox
+  (`farhad@sayyidinaomarinstitute.au`) and its Google Workspace App Password.
+  Each entity's enquiry emails are sent from that entity's own mailbox, not a shared sender.
 - Leave the Vapi variables for the next step.
 
 ### Create the Vapi assistant
@@ -138,7 +146,9 @@ test the other inbox.
 | `VAPI_PRIVATE_KEY` | Build-time script only | Never expose to the browser |
 | `WEBHOOK_URL` | Build-time script only | Used to wire the assistant's tool-call server |
 | `VAPI_WEBHOOK_SECRET` | Server + script | Optional shared secret for verifying webhook calls |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Server | Outbound email credentials |
+| `SMTP_HOST` / `SMTP_PORT` | Server | Shared Google Workspace SMTP host/port (`smtp.gmail.com` / `587`) |
+| `SMTP_USER_MOTECHWA` / `SMTP_PASS_MOTECHWA` | Server | MOTECHWA's own mailbox + App Password (sends MOTECHWA enquiry emails) |
+| `SMTP_USER_SOI` / `SMTP_PASS_SOI` | Server | Institute's own mailbox + App Password (sends Institute enquiry emails) |
 
 ## 6. Deployment (Vercel)
 
@@ -168,7 +178,7 @@ test the other inbox.
 
 ## 8. Security notes
 
-- Keep `VAPI_PRIVATE_KEY`, your Twilio Auth Token, and `SMTP_PASS` out of version control —
+- Keep `VAPI_PRIVATE_KEY`, your Twilio Auth Token, and both `SMTP_PASS_MOTECHWA` / `SMTP_PASS_SOI` out of version control —
   `.gitignore` already excludes `.env*` files, but double-check before pushing to a public
   repository.
 - `npm audit` will flag advisories against the pinned Next.js 14.2.x line, inherited from the

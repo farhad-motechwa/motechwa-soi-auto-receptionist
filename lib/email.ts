@@ -1,33 +1,72 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import type { EnquiryPayload } from "./validation";
 
-let cachedTransporter: Transporter | null = null;
+/**
+ * Per-entity branding, inbox routing, and SENDING account. Each organisation
+ * sends from its own Google Workspace mailbox (better domain alignment /
+ * deliverability than one shared sender pretending to be both), so this is
+ * the single place that decides, per entity: which inbox receives the
+ * enquiry, which mailbox logs in to send it, and how the email is badged.
+ */
+type EntitySmtpConfig = {
+  adminEmailEnvVar: "ADMIN_EMAIL_MOTECHWA" | "ADMIN_EMAIL_SOI";
+  smtpUserEnvVar: "SMTP_USER_MOTECHWA" | "SMTP_USER_SOI";
+  smtpPassEnvVar: "SMTP_PASS_MOTECHWA" | "SMTP_PASS_SOI";
+  brandColor: string;
+  footer: string;
+};
 
-function getTransporter(): Transporter {
-  if (cachedTransporter) return cachedTransporter;
+const ENTITY_CONFIG: Record<EnquiryPayload["entity"], EntitySmtpConfig> = {
+  MOTECHWA: {
+    adminEmailEnvVar: "ADMIN_EMAIL_MOTECHWA",
+    smtpUserEnvVar: "SMTP_USER_MOTECHWA",
+    smtpPassEnvVar: "SMTP_PASS_MOTECHWA",
+    brandColor: "#0f172a",
+    footer: "Logged automatically by the MOTECHWA / Sayyidina Omar Institute shared line voice assistant",
+  },
+  "Sayyidina Omar Institute": {
+    adminEmailEnvVar: "ADMIN_EMAIL_SOI",
+    smtpUserEnvVar: "SMTP_USER_SOI",
+    smtpPassEnvVar: "SMTP_PASS_SOI",
+    brandColor: "#006644",
+    footer: "Logged automatically by the MOTECHWA / Sayyidina Omar Institute shared line voice assistant",
+  },
+};
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+// SMTP_HOST and SMTP_PORT are shared — both mailboxes live on Google
+// Workspace (smtp.gmail.com:587) — only the per-entity user/pass differ.
+const transporterCache = new Map<EnquiryPayload["entity"], Transporter>();
 
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+function getTransporter(entity: EnquiryPayload["entity"]): Transporter {
+  const cached = transporterCache.get(entity);
+  if (cached) return cached;
+
+  const { SMTP_HOST, SMTP_PORT } = process.env;
+  const { smtpUserEnvVar, smtpPassEnvVar } = ENTITY_CONFIG[entity];
+  const smtpUser = process.env[smtpUserEnvVar];
+  const smtpPass = process.env[smtpPassEnvVar];
+
+  if (!SMTP_HOST || !SMTP_PORT || !smtpUser || !smtpPass) {
     throw new Error(
-      "Missing SMTP configuration. Ensure SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS are set."
+      `Missing SMTP configuration for ${entity}. Ensure SMTP_HOST, SMTP_PORT, ${smtpUserEnvVar} and ${smtpPassEnvVar} are set.`
     );
   }
 
   const port = Number(SMTP_PORT);
 
-  cachedTransporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port,
     // 465 is implicit TLS; 587/25 use STARTTLS.
     secure: port === 465,
     auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
+      user: smtpUser,
+      pass: smtpPass,
     },
   });
 
-  return cachedTransporter;
+  transporterCache.set(entity, transporter);
+  return transporter;
 }
 
 function escapeHtml(value: string): string {
@@ -49,27 +88,6 @@ function buildContactLink(contactInfo: string): { href: string; label: string } 
   const digitsOnly = trimmed.replace(/[^\d+]/g, "");
   return { href: `tel:${digitsOnly}`, label: trimmed };
 }
-
-/**
- * Per-entity branding and inbox routing. Each organisation is distinct, so
- * this is the single place that decides which address receives an enquiry
- * and how the email is badged.
- */
-const ENTITY_CONFIG: Record<
-  EnquiryPayload["entity"],
-  { adminEmailEnvVar: "ADMIN_EMAIL_MOTECHWA" | "ADMIN_EMAIL_SOI"; brandColor: string; footer: string }
-> = {
-  MOTECHWA: {
-    adminEmailEnvVar: "ADMIN_EMAIL_MOTECHWA",
-    brandColor: "#0f172a",
-    footer: "Logged automatically by the MOTECHWA / Sayyidina Omar Institute shared line voice assistant",
-  },
-  "Sayyidina Omar Institute": {
-    adminEmailEnvVar: "ADMIN_EMAIL_SOI",
-    brandColor: "#006644",
-    footer: "Logged automatically by the MOTECHWA / Sayyidina Omar Institute shared line voice assistant",
-  },
-};
 
 export function buildEnquirySubject(payload: EnquiryPayload): string {
   return `[${payload.entity} Enquiry - ${payload.urgency}] ${payload.category} - ${payload.caller_name}`;
@@ -187,13 +205,14 @@ export function buildEnquiryHtml(payload: EnquiryPayload): string {
 }
 
 export async function sendEnquiryEmail(payload: EnquiryPayload): Promise<void> {
-  const { adminEmailEnvVar } = ENTITY_CONFIG[payload.entity];
+  const { adminEmailEnvVar, smtpUserEnvVar } = ENTITY_CONFIG[payload.entity];
   const adminEmail = process.env[adminEmailEnvVar];
   if (!adminEmail) {
     throw new Error(`Missing ${adminEmailEnvVar} environment variable.`);
   }
 
-  const transporter = getTransporter();
+  const fromAddress = process.env[smtpUserEnvVar];
+  const transporter = getTransporter(payload.entity);
 
   const textLines = [
     `New ${payload.entity} enquiry from ${payload.caller_name} (${payload.contact_info})`,
@@ -207,7 +226,7 @@ export async function sendEnquiryEmail(payload: EnquiryPayload): Promise<void> {
   ].filter((line): line is string => line !== null);
 
   await transporter.sendMail({
-    from: `"${payload.entity} Assistant" <${process.env.SMTP_USER}>`,
+    from: `"${payload.entity} Assistant" <${fromAddress}>`,
     to: adminEmail,
     subject: buildEnquirySubject(payload),
     html: buildEnquiryHtml(payload),
