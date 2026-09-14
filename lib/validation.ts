@@ -17,6 +17,8 @@ export const ENQUIRY_CATEGORIES = [
   "Cybersecurity Consulting",
   "Programme Enquiry",
   "How You See Yourself at 30",
+  "Murabbi Formation",
+  "Project Amanah",
   "Cloud Broadcasting",
   "Imam or Scholar Consultation",
   "General",
