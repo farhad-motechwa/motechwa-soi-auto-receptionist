@@ -8,3 +8,11 @@ npm-debug.log*
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+scripts/.backups
+
+# One-off Vapi patch payloads and local working files
+vapi-fix-*.json
+vapi-create-*.json
+assistant-payload.json
+Claude outputs/
