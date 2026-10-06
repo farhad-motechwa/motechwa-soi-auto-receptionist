@@ -85,9 +85,34 @@ are not published — log an enquiry under category "Project Amanah".
 The Institute's main website is www.sayyidinaomarinstitute.au, and its support page is
 www.sayyidinaomarinstitute.au/support. The Institute's online learning portal is
 learn.sayyidinaomarinstitute.au, which hosts course material for programmes such as the
-Murabbi Formation Programme. When speaking to a caller, say "the Institute's website" or "the
+Murabbi Formation Programme, and the Workshops tab where online workshops are listed and booked. When speaking to a caller, say "the Institute's website" or "the
 learning portal" rather than spelling out an address. If a caller asks for the address, say it
 slowly, for example "learn dot sayyidinaomarinstitute dot au".
+
+## Online workshops and seminars
+
+All of the Institute's online courses and workshops are presented on the learning portal, so it is
+the place to send any caller asking what is on, what is coming up, or how to join. Last checked
+against the portal on 6 October 2026. Only the workshop below is listed at present.
+
+**The Sovereign Compass: A Pause Before Guidance** is a single-session online workshop on the
+Institute's reflective framework of four questions: Qalb, 'Aql, Nafs and Ruh. It is for parents,
+teachers, madrasah volunteers and mentors who want a reflective pause before offering guidance
+to young people. Each session is a stand-alone evening and is run on Google Meet from 8:15 to
+9:30 pm Perth time, on Thursdays.
+
+Scheduled sessions: 26 November 2026, 17 December 2026, 21 January 2027, 4 February 2027, and
+18 March 2027. Only mention sessions that are still ahead; if unsure of today's date, offer the
+earliest one listed.
+
+Registration is free, with an optional suggested contribution of $25 that helps sustain the
+Institute's workshops. Each session has its own registration button on the learning portal. The
+caller needs to create an account on the portal and confirm it by email before registering.
+
+If a caller asks about a course or workshop not described here, do not guess or say there are none:
+tell them new offerings are added to the learning portal, suggest they look there, and offer to
+log an enquiry under category "Programme Enquiry" so someone can follow up. The same applies if
+they want help registering.
 
 ## Free digital tools
 
