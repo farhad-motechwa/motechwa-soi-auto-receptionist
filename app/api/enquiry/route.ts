@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { enquirySchema } from "@/lib/validation";
 import { sendEnquiryEmail } from "@/lib/email";
@@ -35,6 +36,7 @@ type VapiToolCall = {
 
 type VapiEnvelope = {
   message?: {
+    call?: { createdAt?: string; customer?: { number?: string } };
     type?: string;
     toolCalls?: VapiToolCall[];
     functionCall?: { name?: string; parameters?: unknown };
@@ -52,6 +54,36 @@ function parseArguments(raw: unknown): Record<string, unknown> {
   }
   if (typeof raw === "object") return raw as Record<string, unknown>;
   return {};
+}
+
+/**
+ * Checks the shared secret Vapi sends with each server message. Enforced only
+ * when VAPI_WEBHOOK_SECRET is set, so existing deployments keep working until
+ * the secret is configured on both sides. Confirm the exact header name from a
+ * real call payload; both common forms are accepted.
+ */
+function isAuthorised(request: NextRequest): boolean {
+  const secret = process.env.VAPI_WEBHOOK_SECRET;
+  if (!secret) {
+    console.warn("VAPI_WEBHOOK_SECRET is not set: webhook is accepting unauthenticated requests.");
+    return true;
+  }
+  const header =
+    request.headers.get("x-vapi-secret") ??
+    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!header) return false;
+  const a = Buffer.from(header);
+  const b = Buffer.from(secret);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** Caller number and call time come from Vapi itself, not from the model. */
+function callMeta(envelope: VapiEnvelope): Record<string, string> {
+  const call = envelope?.message?.call;
+  const meta: Record<string, string> = {};
+  if (call?.customer?.number) meta.caller_number = call.customer.number;
+  if (call?.createdAt) meta.call_time = call.createdAt;
+  return meta;
 }
 
 const CONFIRMATION_MESSAGE = "Enquiry logged successfully";
@@ -75,6 +107,10 @@ async function resolveToolCall(args: Record<string, unknown>): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAuthorised(request)) {
+    return NextResponse.json({ success: false, message: "Unauthorised" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -93,14 +129,14 @@ export async function POST(request: NextRequest) {
     const results = await Promise.all(
       toolCalls.map(async (call) => ({
         toolCallId: call.id ?? undefined,
-        result: await resolveToolCall(parseArguments(call.function?.arguments)),
+        result: await resolveToolCall({ ...parseArguments(call.function?.arguments), ...callMeta(envelope) }),
       }))
     );
     return NextResponse.json({ results }, { status: 200 });
   }
 
   if (legacyCall) {
-    const result = await resolveToolCall(parseArguments(legacyCall.parameters));
+    const result = await resolveToolCall({ ...parseArguments(legacyCall.parameters), ...callMeta(envelope) });
     return NextResponse.json({ results: [{ result }] }, { status: 200 });
   }
 

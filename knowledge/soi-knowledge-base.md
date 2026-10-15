@@ -65,11 +65,12 @@ it themselves.
 Anyone wanting to volunteer or ask about becoming a Murabbi should have an enquiry logged
 under category "Murabbi Formation" — the receptionist does not assess suitability.
 
-The next Murabbi Formation Programme begins on 14 October 2026. Its course material is on
-the Institute's online learning portal. The weekly rhythm is an online session on Wednesday
-evenings from 8:15 to 9:45 pm on Google Meet, and an in-person session on Saturday mornings
-from 9 to 10 am at Alhidayah Centre. Fees and how places are confirmed are not published
-here, so log an enquiry under category "Murabbi Formation" rather than stating them.
+The Murabbi Formation Programme runs weekly: an online session on Wednesday evenings from
+8:15 to 9:45 pm on Google Meet, and an in-person session on Saturday mornings from 9 to 10 am
+at Alhidayah Centre. Course material is on the learning portal. Intake dates, fees and how
+places are confirmed are not published here, so log an enquiry under category "Murabbi
+Formation" rather than stating them. If asked when the next intake is, say the team will
+confirm it.
 
 ## Project Amanah — youth innovation pilot
 

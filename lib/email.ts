@@ -86,11 +86,16 @@ function buildContactLink(contactInfo: string): { href: string; label: string } 
     return { href: `mailto:${trimmed}`, label: trimmed };
   }
   const digitsOnly = trimmed.replace(/[^\d+]/g, "");
+  if (digitsOnly.replace(/\D/g, "").length < 8) {
+    // Not a usable phone number: show the text, but do not create a dead link.
+    return { href: "", label: trimmed };
+  }
   return { href: `tel:${digitsOnly}`, label: trimmed };
 }
 
 export function buildEnquirySubject(payload: EnquiryPayload): string {
-  return `[${payload.entity} Enquiry - ${payload.urgency}] ${payload.category} - ${payload.caller_name}`;
+  const flag = payload.category === "Welfare or Safeguarding" ? "[SAFEGUARDING] " : "";
+  return `${flag}[${payload.entity} Enquiry - ${payload.urgency}] ${payload.category} - ${payload.caller_name}`;
 }
 
 export function buildEnquiryHtml(payload: EnquiryPayload): string {

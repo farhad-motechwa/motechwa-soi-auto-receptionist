@@ -195,3 +195,19 @@ test the other inbox.
   should also push to a phone.
 - If call volume grows, Vapi's dashboard provides transcripts and call recordings without any
   changes to this codebase.
+
+
+## Hardening rollout (branch `receptionist-hardening`)
+
+This change set tightens the schema, adds safety and cyber-incident handling to the prompt, and
+fills caller number and call time from Vapi. Before going live:
+
+1. Export the live assistant JSON from the Vapi dashboard and diff it against
+   `lib/vapi-assistant-config.mjs`. `npm run create-assistant` PATCHes the whole payload and would
+   overwrite dashboard tuning (voice, transcriber, attached knowledge file).
+2. Set `VAPI_WEBHOOK_SECRET` in Vercel (and the same secret on the assistant's server config).
+   The check is only enforced when the variable is set. Confirm the header name from a real call
+   payload (`x-vapi-secret` or `Authorization: Bearer`).
+3. Confirm `message.call.customer.number` and `message.call.createdAt` against one logged payload.
+4. Re-sync the knowledge file (`scripts/sync-knowledge.mjs`) and work through
+   `docs/test-calls-and-operations.md`.
